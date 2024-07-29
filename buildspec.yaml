@@ -8,9 +8,9 @@ phases:
   build:
     commands:
       - echo Build the Docker image
-      - docker build -t $IMAGE_REPO_NAME:$CODEBUILD_BUILD_NUMBER .
-      - docker tag $IMAGE_REPO_NAME:$CODEBUILD_BUILD_NUMBER $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$IMAGE_REPO_NAME:$CODEBUILD_BUILD_NUMBER
+      - docker build -t coworking .
+      - docker tag coworking:latest 878972766573.dkr.ecr.us-east-1.amazonaws.com/coworking:latest
   post_build:
     commands:
       - echo Push the Docker image
-      - docker push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$IMAGE_REPO_NAME:$CODEBUILD_BUILD_NUMBER
+      - docker push 878972766573.dkr.ecr.us-east-1.amazonaws.com/coworking:latest
