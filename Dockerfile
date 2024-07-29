@@ -1,4 +1,4 @@
-FROM 878972766573.dkr.ecr.us-east-1.amazonaws.com/python:latest
+FROM public.ecr.aws/docker/library/python:3.10-alpine
 
 WORKDIR /app
 
