@@ -8,9 +8,9 @@ phases:
   build:
     commands:
       - echo Build the Docker image
-      - docker build -t coworking .
-      - docker tag coworking:latest $AWS_ACCOUNT_ID.dkr.ecr.us-east-1.amazonaws.com/coworking:latest
+      - docker build -t coworking2 .
+      - docker tag coworking2:latest $AWS_ACCOUNT_ID.dkr.ecr.us-east-1.amazonaws.com/coworking2:latest
   post_build:
     commands:
       - echo Push the Docker image
-      - docker push $AWS_ACCOUNT_ID.dkr.ecr.us-east-1.amazonaws.com/coworking:latest
+      - docker push $AWS_ACCOUNT_ID.dkr.ecr.us-east-1.amazonaws.com/coworking2:latest
