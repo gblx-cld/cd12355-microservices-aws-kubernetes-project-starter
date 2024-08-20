@@ -17,7 +17,7 @@ kind: Deployment
 metadata:
   name: coworking
   labels:
-    service: coworking
+    name: coworking
 spec:
   replicas: 1
   selector:
