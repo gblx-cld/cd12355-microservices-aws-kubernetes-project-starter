@@ -25,19 +25,19 @@ Set up a Postgres database using a Helm Chart.
 
 1. Set up Bitnami Repo
 ```bash
-helm repo add <REPO_NAME> https://charts.bitnami.com/bitnami
+helm repo add bitnami https://charts.bitnami.com/bitnami
 ```
 
 2. Install PostgreSQL Helm Chart
 ```
-helm install <SERVICE_NAME> <REPO_NAME>/postgresql
+helm install postgresql-service bitnami/postgresql
 ```
 
-This should set up a Postgre deployment at `<SERVICE_NAME>-postgresql.default.svc.cluster.local` in your Kubernetes cluster. You can verify it by running `kubectl svc`
+This should set up a Postgre deployment at `postgresql-service-postgresql.default.svc.cluster.local` in your Kubernetes cluster. You can verify it by running `kubectl svc`
 
 By default, it will create a username `postgres`. The password can be retrieved with the following command:
 ```bash
-export POSTGRES_PASSWORD=$(kubectl get secret --namespace default <SERVICE_NAME>-postgresql -o jsonpath="{.data.postgres-password}" | base64 -d)
+export POSTGRES_PASSWORD=$(kubectl get secret --namespace default postgresql-service-postgresql -o jsonpath="{.data.postgres-password}" | base64 -d)
 
 echo $POSTGRES_PASSWORD
 ```
@@ -49,22 +49,28 @@ The database is accessible within the cluster. This means that when you will hav
 
 * Connecting Via Port Forwarding
 ```bash
-kubectl port-forward --namespace default svc/<SERVICE_NAME>-postgresql 5432:5432 &
-    PGPASSWORD="$POSTGRES_PASSWORD" psql --host 127.0.0.1 -U postgres -d postgres -p 5432
+kubectl port-forward service/postgresql-service 5433:5432 &
+export DB_PASSWORD="$POSTGRES_PASSWORD"
 ```
 
 * Connecting Via a Pod
 ```bash
-kubectl exec -it <POD_NAME> bash
-PGPASSWORD="<PASSWORD HERE>" psql postgres://postgres@<SERVICE_NAME>:5432/postgres -c <COMMAND_HERE>
+kubectl exec -it postgresql-5bbd7d564-b5bbq bash
+PGPASSWORD="$POSTGRES_PASSWORD" psql postgres://postgres@postgresql-service:5432/postgres -c <COMMAND_HERE>
 ```
 
 4. Run Seed Files
 We will need to run the seed files in `db/` in order to create the tables and populate them with data.
 
 ```bash
-kubectl port-forward --namespace default svc/<SERVICE_NAME>-postgresql 5432:5432 &
-    PGPASSWORD="$POSTGRES_PASSWORD" psql --host 127.0.0.1 -U postgres -d postgres -p 5432 < <FILE_NAME.sql>
+kubectl port-forward --namespace default service/postgresql-service-postgresql 5432:5432 &
+    PGPASSWORD="$POSTGRES_PASSWORD" psql --host 127.0.0.1 -U postgres -d postgres -p 5432 < 1_create_tables.sql
+
+kubectl port-forward --namespace default service/postgresql-service-postgresql 5432:5432 &
+    PGPASSWORD="$POSTGRES_PASSWORD" psql --host 127.0.0.1 -U postgres -d postgres -p 5432 < 2_seed_users.sql
+
+kubectl port-forward --namespace default service/postgresql-service-postgresql 5432:5432 &
+    PGPASSWORD="$POSTGRES_PASSWORD" psql --host 127.0.0.1 -U postgres -d postgres -p 5432 < 3_seed_tokens.sql
 ```
 
 ### 2. Running the Analytics Application Locally
@@ -76,7 +82,8 @@ pip install -r requirements.txt
 ```
 2. Run the application (see below regarding environment variables)
 ```bash
-<ENV_VARS> python app.py
+export POSTGRES_PASSWORD=mypassword
+python app.py
 ```
 
 There are multiple ways to set environment variables in a command. They can be set per session by running `export KEY=VAL` in the command line or they can be prepended into your command.
@@ -95,10 +102,10 @@ The benefit here is that it's explicitly set. However, note that the `DB_PASSWOR
 
 3. Verifying The Application
 * Generate report for check-ins grouped by dates
-`curl <BASE_URL>/api/reports/daily_usage`
+`curl a441eb76b7b6a457493bfcb71247650c-1259600075.us-east-1.elb.amazonaws.com/api/reports/daily_usage`
 
 * Generate report for check-ins grouped by users
-`curl <BASE_URL>/api/reports/user_visits`
+`curl a441eb76b7b6a457493bfcb71247650c-1259600075.us-east-1.elb.amazonaws.com/api/reports/user_visits`
 
 ## Project Instructions
 1. Set up a Postgres database with a Helm Chart
@@ -113,8 +120,8 @@ The benefit here is that it's explicitly set. However, note that the `DB_PASSWOR
 3. Screenshot of AWS ECR repository for the application's repository
 4. Screenshot of `kubectl get svc`
 5. Screenshot of `kubectl get pods`
-6. Screenshot of `kubectl describe svc <DATABASE_SERVICE_NAME>`
-7. Screenshot of `kubectl describe deployment <SERVICE_NAME>`
+6. Screenshot of `kubectl describe svc postgresql-service`
+7. Screenshot of `kubectl describe deployment coworking`
 8. All Kubernetes config files used for deployment (ie YAML files)
 9. Screenshot of AWS CloudWatch logs for the application
 10. `README.md` file in your solution that serves as documentation for your user to detail how your deployment process works and how the user can deploy changes. The details should not simply rehash what you have done on a step by step basis. Instead, it should help an experienced software developer understand the technologies and tools in the build and deploy process as well as provide them insight into how they would release new builds.
